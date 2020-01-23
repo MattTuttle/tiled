@@ -5,6 +5,7 @@
  ******************************************************************************/
 package haxepunk.tmx;
 
+import haxe.zip.Uncompress;
 import haxe.xml.Access;
 import haxe.io.BytesInput;
 import haxe.io.Bytes;
@@ -226,11 +227,11 @@ class TmxLayer
 	{
 		var result:Array<Array<Int>> = new Array<Array<Int>>();
 		var data:Bytes = base64ToBytes(chunk);
-		var input = new BytesInput(data);
 		if (compressed)
 		{
-			throw "Compression is currently unsupported";
+			data = Uncompress.run(data);
 		}
+		var input = new BytesInput(data);
 
 		input.bigEndian = false;
 		while (input.position < input.length)
