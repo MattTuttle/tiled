@@ -5,7 +5,7 @@
  ******************************************************************************/
 package haxepunk.tmx;
 
-import haxe.xml.Fast;
+import haxe.xml.Access;
 import haxepunk.masks.Hitbox;
 
 class TmxObject
@@ -62,7 +62,7 @@ class TmxObject
 
 	/**
 	 *  The mask of this object.
-	 *  
+	 *
 	 *  Possible types are Hitbox and Circle (cannot do ellipses).
 	 */
 	public var shapeMask:Hitbox;
@@ -70,13 +70,13 @@ class TmxObject
 	#if debug
 	public var debug_graphic:haxepunk.graphics.Image;
 	#end
-	
+
 	/**
 	 *  Constructor.
-	 *  @param source - The Fast node representing this object.
+	 *  @param source - The Access node representing this object.
 	 *  @param parent - The parent Object Group.
 	 */
-	public function new(source:Fast, parent:TmxObjectGroup)
+	public function new(source:Access, parent:TmxObjectGroup)
 	{
 		group = parent;
 		name = (source.has.name) ? source.att.name : "[object]";
@@ -98,7 +98,7 @@ class TmxObject
 				if (shared != null) break;
 			}
 		}
-		
+
 		//load properties
 		var node:Xml;
 		custom = new TmxPropertySet();

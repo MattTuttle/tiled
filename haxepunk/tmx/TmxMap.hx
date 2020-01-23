@@ -5,28 +5,24 @@
  ******************************************************************************/
 package haxepunk.tmx;
 
-import haxe.xml.Fast;
-import flash.utils.ByteArray;
+import haxe.xml.Access;
+import haxepunk.assets.AssetCache;
 
-#if nme
-import nme.Assets;
-#else
-import openfl.Assets;
-#end
-
-abstract MapData(Fast)
+abstract MapData(Access)
 {
-	private inline function new(f:Fast) this = f;
-	@:to public inline function toMap():Fast return this;
+	private inline function new(f:Access) this = f;
+	@:to public inline function toMap():Access return this;
 
 	@:from public static inline function fromString(s:String)
-		return new MapData(new Fast(Xml.parse(s)));
+		return new MapData(new Access(Xml.parse(s)));
 
 	@:from public static inline function fromXml(xml:Xml)
-		return new MapData(new Fast(xml));
+		return new MapData(new Access(xml));
 
-	@:from public static inline function fromByteArray(ba:ByteArray)
-		return new MapData(new Fast(Xml.parse(ba.toString())));
+	#if (lime || nme)
+	@:from public static inline function fromByteArray(ba:flash.utils.ByteArray)
+		return new MapData(new Access(Xml.parse(ba.toString())));
+	#end
 }
 
 /**
@@ -106,8 +102,8 @@ class TmxMap
 	public function new(data:MapData)
 	{
 		properties = new TmxPropertySet();
-		var source:Fast = null;
-		var node:Fast = null;
+		var source:Access = null;
+		var node:Access = null;
 
 		source = data;
 
@@ -169,7 +165,7 @@ class TmxMap
 	 */
 	public static function loadFromFile(name:String):TmxMap
 	{
-		return new TmxMap(Assets.getText(name));
+		return new TmxMap(AssetCache.global.getText(name));
 	}
 
 	/**
@@ -194,9 +190,9 @@ class TmxMap
 
 	/**
 	 *  Gets the tileset which owns a specific tile gid.
-	 *  
+	 *
 	 *  Only works after a TmxTileSet has been initialized with an image.
-	 *  
+	 *
 	 *  @param gid - The gid to use for the search.
 	 *  @return TmxTileSet
 	 */
@@ -213,12 +209,12 @@ class TmxMap
 
 		return null;
 	}
-	
+
 	/**
 	 *  Gets a named property for a specific tile gid.
-	 *  
+	 *
 	 *  Only works after a TmxtileSet has been initialized with an image.
-	 *  
+	 *
 	 *  @param gid - The gid of the tile.
 	 *  @param property - The named property of the tile to retrieve.
 	 *  @return String

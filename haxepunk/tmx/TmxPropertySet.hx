@@ -5,7 +5,10 @@
  ******************************************************************************/
 package haxepunk.tmx;
 
-import haxe.xml.Fast;
+import haxe.xml.Access;
+import haxe.ds.StringMap;
+
+#if (haxe_ver < 4)
 
 /**
  *  A set of custom properties.
@@ -18,11 +21,7 @@ class TmxPropertySet implements Dynamic<String>
 	 */
 	public function new()
 	{
-#if haxe3
-		keys = new Map<String, String>();
-#else
-		keys = new Hash<String>();
-#end
+		keys = new StringMap<String>();
 	}
 
 	/**
@@ -49,18 +48,64 @@ class TmxPropertySet implements Dynamic<String>
 	 *  Adds custom properties to this set.
 	 *  @param source - The Fast source of the custom properties to add.
 	 */
-	public function extend(source:Fast)
+	public function extend(source:Access)
 	{
-		var prop:Fast;
 		for (prop in source.nodes.property)
 		{
 			keys.set(prop.att.name, prop.att.value);
 		}
 	}
 
-#if haxe3
 	private var keys:Map<String, String>;
-#else
-	private var keys:Hash<String>;
-#end
 }
+
+#else
+
+/**
+ *  A set of custom properties.
+ */
+abstract TmxPropertySet(StringMap<String>)
+{
+
+	/**
+	 *  Constructor.
+	 */
+	public function new()
+	{
+		this = new StringMap<String>();
+	}
+
+	/**
+	 *  Resolves a custom property.
+	 *  @param name - Name of the property to resolve.
+	 *  @return String
+	 */
+	@:op(a.b) public function resolve(name:String):String
+	{
+		return this.get(name);
+	}
+
+	/**
+	 *  Checks for the existence of a custom property.
+	 *  @param name - The name of the custom property.
+	 *  @return Bool
+	 */
+	public function has(name:String):Bool
+	{
+		return this.exists(name);
+	}
+
+	/**
+	 *  Adds custom properties to this set.
+	 *  @param source - The Fast source of the custom properties to add.
+	 */
+	public function extend(source:Access)
+	{
+		for (prop in source.nodes.property)
+		{
+			this.set(prop.att.name, prop.att.value);
+		}
+	}
+}
+
+#end

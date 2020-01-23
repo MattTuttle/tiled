@@ -2,7 +2,7 @@ package haxepunk.tmx;
 
 import haxepunk.Entity;
 import haxepunk.Graphic;
-import haxepunk.assets.AssetLoader;
+import haxepunk.assets.AssetCache;
 import haxepunk.graphics.Graphiclist;
 import haxepunk.graphics.Image;
 import haxepunk.graphics.tile.Tilemap;
@@ -19,7 +19,7 @@ private abstract Map(TmxMap)
 	@:to public inline function toMap():TmxMap return this;
 
 	@:from public static inline function fromString(s:String)
-		return new Map(new TmxMap(Xml.parse(AssetLoader.getText(s))));
+		return new Map(new TmxMap(Xml.parse(AssetCache.global.getText(s))));
 
 	@:from public static inline function fromTmxMap(map:TmxMap)
 		return new Map(map);
@@ -151,14 +151,14 @@ class TmxEntity extends Entity
 		setHitbox(grid.width, grid.height);
 		return tileCoords;
 	}
-	
+
 	/**
 	 *  Loads a SlopedGrid from a tilelayer.
-	 *  
+	 *
 	 *  The tiles in the tileset used must have a custom property named 'tileType'.
 	 *  The 'tileType' property must be a string that labels the tile as any of the
 	 *    haxepunk.masks.SlopedGrid.TileShape values.
-	 *  
+	 *
 	 *  @param collideLayer - The layer of the Tiled Map from which to create the Grid.
 	 *  @param typeName - The new type of this entity.
 	 *  @param skip - A list of tile gid's to skip.
@@ -172,12 +172,12 @@ class TmxEntity extends Entity
 #end
 			return;
 		}
-		
+
 		var gid:Int;
 		var layer:TmxLayer = map.layers.get(collideLayer);
 		var grid = new SlopedGrid(map.fullWidth, map.fullHeight, map.tileWidth, map.tileHeight);
 		// var types = TileShape.Empty;
-		
+
 		for (row in 0...layer.height)
 		{
 			for (col in 0...layer.width)
@@ -213,7 +213,7 @@ class TmxEntity extends Entity
 				}
 			}
 		}
-		
+
 		this.mask = grid;
 		this.type = typeName;
 		setHitbox(grid.width, grid.height);
@@ -227,9 +227,9 @@ class TmxEntity extends Entity
 
 	/**
 	 *  Creates a masklist from an object layer.
-	 *  
+	 *
 	 *  Currently only supports unrotated circles and hitboxes.
-	 *  
+	 *
 	 *  @param collideLayer - The name of the object group/layer.
 	 *  @param typeName - The new type of this entity.
 	 */

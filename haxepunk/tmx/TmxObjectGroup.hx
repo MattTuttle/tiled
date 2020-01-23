@@ -5,7 +5,7 @@
  ******************************************************************************/
 package haxepunk.tmx;
 
-import haxe.xml.Fast;
+import haxe.xml.Access;
 
 class TmxObjectGroup
 {
@@ -58,17 +58,17 @@ class TmxObjectGroup
 	 *  The objects in this group.
 	 */
 	public var objects:Array<TmxObject>;
-	
+
 	/**
 	 *  Constructor.
-	 *  @param source - The Fast source representing this group.
+	 *  @param source - The Access source representing this group.
 	 *  @param parent - The parent Map of this group.
 	 */
-	public function new(source:Fast, parent:TmxMap)
+	public function new(source:Access, parent:TmxMap)
 	{
 		properties = new TmxPropertySet();
 		objects = new Array<TmxObject>();
-		
+
 		map = parent;
 		name = source.att.name;
 		x = (source.has.x) ? Std.parseInt(source.att.x) : 0;
@@ -77,12 +77,12 @@ class TmxObjectGroup
 		height = map.height;
 		visible = (source.has.visible && source.att.visible == "1") ? true : false;
 		opacity = (source.has.opacity) ? Std.parseFloat(source.att.opacity) : 0;
-		
+
 		//load properties
-		var node:Fast;
+		var node:Access;
 		for (node in source.nodes.properties)
 			properties.extend(node);
-			
+
 		//load objects
 		for (node in source.nodes.object)
 			objects.push(new TmxObject(node, this));

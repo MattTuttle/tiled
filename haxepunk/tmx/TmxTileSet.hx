@@ -5,24 +5,30 @@
  ******************************************************************************/
 package haxepunk.tmx;
 
-import flash.display.BitmapData;
-import flash.geom.Rectangle;
-import flash.utils.ByteArray;
-import haxe.xml.Fast;
+import haxepunk.math.Rectangle;
+import haxe.xml.Access;
 
-abstract TileSetData(Fast)
+#if (lime || nme)
+typedef Image = flash.display.BitmapData;
+#else
+typedef Image = Dynamic;
+#end
+
+abstract TileSetData(Access)
 {
-	private inline function new(f:Fast) this = f;
-	@:to public inline function toMap():Fast return this;
+	private inline function new(f:Access) this = f;
+	@:to public inline function toMap():Access return this;
 
-	@:from public static inline function fromFast(f:Fast)
+	@:from public static inline function fromAccess(f:Access)
 		return new TileSetData(f);
 
-	@:from public static inline function fromByteArray(ba:ByteArray)
+	#if (lime || nme)
+	@:from public static inline function fromByteArray(ba:flash.utils.ByteArray)
 	{
-		var f = new Fast(Xml.parse(ba.toString()));
+		var f = new Access(Xml.parse(ba.toString()));
 		return new TileSetData(f.node.tileset);
 	}
+	#end
 }
 
 /**
@@ -31,7 +37,7 @@ abstract TileSetData(Fast)
 class TmxTileSet
 {
 	private var _tileProps:Array<TmxPropertySet>;
-	private var _image:BitmapData;
+	private var _image:Image;
 
 	/**
 	 *  The first global tile ID of this tileset (this global ID maps to the first tile in this tileset).
@@ -80,32 +86,32 @@ class TmxTileSet
 
 	/**
 	 *  Number of tiles in this tileset.
-	 *  
+	 *
 	 *  Only available after image has been assigned.
 	 */
 	public var numTiles:Int;
 
 	/**
 	 *  Number of rows in this tileset.
-	 *  
+	 *
 	 *  Only available after image has been assigned.
 	 */
 	public var numRows:Int;
 
 	/**
 	 *  Number of columns in this tileset.
-	 *  
+	 *
 	 *  Only available after image has been assigned.
 	 */
 	public var numCols:Int;
 
 	/**
 	 *  Constructor.
-	 *  @param data - 
+	 *  @param data -
 	 */
 	public function new(data:TileSetData)
 	{
-		var node:Fast, source:Fast;
+		var node:Access, source:Access;
 		numTiles = 0xFFFFFF;
 		numRows = numCols = 1;
 
@@ -117,11 +123,11 @@ class TmxTileSet
 		if (source.has.source) {}
 		else // internal
 		{
-			var node:Fast = source.node.image;
+			var node:Access = source.node.image;
 			imageSource = node.att.source;
 			if (node.has.width) imageWidth = Std.parseInt(node.att.width);
 			if (node.has.height) imageHeight = Std.parseInt(node.att.height);
-			
+
 			name = source.att.name;
 			if (source.has.tilewidth) tileWidth = Std.parseInt(source.att.tilewidth);
 			if (source.has.tileheight) tileHeight = Std.parseInt(source.att.tileheight);
@@ -146,12 +152,12 @@ class TmxTileSet
 	/**
 	 *  The image of this tileset from which tiles are indexed.
 	 */
-	public var image(get_image, set_image):BitmapData;
-	private function get_image():BitmapData
+	public var image(get, set):Image;
+	private function get_image():Image
 	{
 		return _image;
 	}
-	public function set_image(v:BitmapData):BitmapData
+	public function set_image(v:Image):Image
 	{
 		_image = v;
 		//TODO: consider spacing & margin

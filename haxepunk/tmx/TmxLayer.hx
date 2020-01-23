@@ -5,9 +5,10 @@
  ******************************************************************************/
 package haxepunk.tmx;
 
-import flash.utils.ByteArray;
-import flash.utils.Endian;
-import haxe.xml.Fast;
+import haxe.xml.Access;
+import haxe.io.BytesInput;
+import haxe.io.Bytes;
+import haxe.io.BytesOutput;
 
 /**
  *  A data class that represents a Tiled TileLayer.
@@ -69,33 +70,33 @@ class TmxLayer
 	 *  The first Tile GID of the tileset used by this layer.
 	 */
 	public var firstGID:Int;
-	
+
 	/**
 	 *  Constructor.
-	 *  
+	 *
 	 *  @param source - The Xml.Fast node that represents this layer.
 	 *  @param parent - The TmxMap this layer belongs to.
 	 */
-	public function new(source:Fast, parent:TmxMap)
+	public function new(source:Access, parent:TmxMap)
 	{
 		properties = new TmxPropertySet();
 		map = parent;
 		name = source.att.name;
 		x = (source.has.x) ? Std.parseInt(source.att.x) : 0;
 		y = (source.has.y) ? Std.parseInt(source.att.y) : 0;
-		width = Std.parseInt(source.att.width); 
-		height = Std.parseInt(source.att.height); 
+		width = Std.parseInt(source.att.width);
+		height = Std.parseInt(source.att.height);
 		visible = (source.has.visible && source.att.visible == "1") ? true : false;
 		opacity = (source.has.opacity) ? Std.parseFloat(source.att.opacity) : 0;
-		
+
 		//load properties
-		var node:Fast;
+		var node:Access;
 		for (node in source.nodes.properties)
 			properties.extend(node);
-		
+
 		//load tile GIDs
 		tileGIDs = [];
-		var data:Fast = source.node.data;
+		var data:Access = source.node.data;
 		if (data != null)
 		{
 			var chunk:String = "";
@@ -152,10 +153,10 @@ class TmxLayer
 			}
 		}
 	}
-	
+
 	/**
 	 *  Exports this tileLayer to a comma separated value string.
-	 *  
+	 *
 	 *  @param tileSet - An optional tileset that is used to validate the tile index's.
 	 *  @return String
 	 */
@@ -184,7 +185,7 @@ class TmxLayer
 		}
 		return result;
 	}
-	
+
 	/* ONE DIMENSION ARRAY
 	public static function arrayToCSV(input:Array, lineWidth:Int):String
 	{
@@ -202,7 +203,7 @@ class TmxLayer
 		return result;
 	}
 	*/
-	
+
 	private static function csvToArray(input:String):Array<Array<Int>>
 	{
 		var result:Array<Array<Int>> = new Array<Array<Int>>();
@@ -220,37 +221,41 @@ class TmxLayer
 		}
 		return result;
 	}
-	
+
 	private static function base64ToArray(chunk:String, lineWidth:Int, compressed:Bool):Array<Array<Int>>
 	{
 		var result:Array<Array<Int>> = new Array<Array<Int>>();
-		var data:ByteArray = base64ToByteArray(chunk);
+		var data:Bytes = base64ToBytes(chunk);
+		var input = new BytesInput(data);
 		if (compressed)
 		{
-			#if (js && !format)
-			throw "Need the format library to use compressed map on html5";
-			#else 
-			data.uncompress();
-			#end
+			throw "Compression is currently unsupported";
 		}
-			
-		data.endian = Endian.LITTLE_ENDIAN;
-		while (data.position < data.length)
+
+		input.bigEndian = false;
+		while (input.position < input.length)
 		{
 			var resultRow:Array<Int> = new Array<Int>();
 			var i:Int;
 			for (i in 0...lineWidth)
-				resultRow.push(data.readInt());
+				resultRow.push(input.readInt32());
 			result.push(resultRow);
 		}
 		return result;
 	}
-	
+
 	private static inline var BASE64_CHARS:String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-	
-	private static function base64ToByteArray(data:String):ByteArray 
+
+	#if (lime || nme)
+	private static function base64ToByteArray(data:String):flash.utils.ByteArray
 	{
-		var output:ByteArray = new ByteArray();
+
+	}
+	#end
+
+	private static function base64ToBytes(data:String):Bytes
+	{
+		var output = new BytesOutput();
 		//initialize lookup table
 		var lookup:Array<Int> = new Array<Int>();
 		var c:Int;
@@ -258,22 +263,22 @@ class TmxLayer
 		{
 			lookup[BASE64_CHARS.charCodeAt(c)] = c;
 		}
-		
+
 		var i:Int = 0;
-		while (i < data.length - 3) 
+		while (i < data.length - 3)
 		{
 			// Ignore whitespace
 			if (data.charAt(i) == " " || data.charAt(i) == "\n")
 			{
 				i++; continue;
 			}
-			
+
 			//read 4 bytes and look them up in the table
 			var a0:Int = lookup[data.charCodeAt(i)];
 			var a1:Int = lookup[data.charCodeAt(i + 1)];
 			var a2:Int = lookup[data.charCodeAt(i + 2)];
 			var a3:Int = lookup[data.charCodeAt(i + 3)];
-			
+
 			// convert to and write 3 bytes
 			if (a1 < 64)
 				output.writeByte((a0 << 2) + ((a1 & 0x30) >> 4));
@@ -281,12 +286,10 @@ class TmxLayer
 				output.writeByte(((a1 & 0x0f) << 4) + ((a2 & 0x3c) >> 2));
 			if (a3 < 64)
 				output.writeByte(((a2 & 0x03) << 6) + a3);
-			
+
 			i += 4;
 		}
-		
-		// Rewind & return decoded data
-		output.position = 0;
-		return output;
+
+		return output.getBytes();
 	}
 }
