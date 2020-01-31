@@ -46,6 +46,11 @@ class TmxObject
 	public var height:Int;
 
 	/**
+	 * The angle the object is rotated at in degrees.
+	 */
+	public var rotation:Float;
+
+	/**
 	 *  [Optional] A referene to a tile.
 	 */
 	public var gid:Int;
@@ -83,6 +88,7 @@ class TmxObject
 		type = (source.has.type) ? source.att.type : "";
 		x = Std.parseInt(source.att.x);
 		y = Std.parseInt(source.att.y);
+		rotation = source.has.rotation ? Std.parseFloat(source.att.rotation) : 0;
 		width = (source.has.width) ? Std.parseInt(source.att.width) : 0;
 		height = (source.has.height) ? Std.parseInt(source.att.height) : 0;
 		//resolve inheritence
